@@ -110,7 +110,10 @@ if api_pronta:
                     
                     st.success("Prontuário Gerado com Sucesso!")
                     st.markdown("---")
-                    st.markdown(texto_gerado)
+                    # --- TRATAMENTO DE QUEBRA DE LINHA PARA O STREAMLIT ---
+                    texto_formatado_tela = texto_gerado.replace("\n", "\n\n")
+                    st.markdown(texto_formatado_tela)
+                    
                     st.markdown("---")
                     
                     # Definições de nomes amigáveis de arquivo para download
