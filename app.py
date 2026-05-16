@@ -73,20 +73,20 @@ if api_pronta:
                     
                     Você DEVE obrigatoriamente iniciar o seu output com o cabeçalho exatamente no formato estruturado abaixo. É CRUCIAL que você mantenha cada informação em uma linha separada, respeitando estritamente as quebras de linha. NÃO junte estas linhas em um único parágrafo.
                     
-                    --- INÍCIO DO CABEÇALHO ---
+                    
                     ANOTAÇÕES CLÍNICAS DE ATENDIMENTO
                     Cliente: {nome_cliente}
                     Data: {data_atual}
                     Horário: [completar]
                     Sessão nº: [completar]
                     Modalidade: [completar: presencial, online, etc.]
-                    --- FIM DO CABEÇALHO ---
+                    
                     
                     Diretrizes de Escrita:
                     - Tom Profissional: Use uma linguagem técnica (ex: em vez de "fugir", use "esquiva").
                     - Neutralidade: Não invente diagnósticos ou sentimentos que não foram descritos.
                     - Concisão: Mantenha cada parágrafo curto. Se uma informação não estiver nas notas, use termos genéricos como "não reportado" ou apenas foque no que existe.
-                    - Flexibilidade de Gênero: Adapte o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
+                    - Flexibilidade de Gênero: Adapt o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
                     
                     Estrutura do Restante do Output (pule uma linha após o cabeçalho):
                     
@@ -122,31 +122,38 @@ if api_pronta:
             st.markdown(texto_formatado_tela)
             st.markdown("---")
             
-            # --- BOTÃO COPIAR (Antes dos downloads) ---
-            st.write("📋 **Área de Transferência:**")
-            st_copy_to_clipboard(texto_original, before_copy_label="Clique para copiar o texto", after_copy_label="✅ Copiado para a área de transferência!")
-            st.write("") # Espaçamento
-            
             # Recupera os dados da memória para os arquivos
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            col1, col2 = st.columns(2)
+            # --- POSICIONAMENTO DOS TRÊS BOTÕES LADO A LADO ---
+            col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.download_button(
-                    label="📥 Baixar em Word (.DOCX)",
-                    data=gerar_docx(texto_original),
-                    file_name=f"prontuario_{nome_arq}_{data_arq}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                # Pequena margem superior em HTML para alinhar perfeitamente a extensão de cópia com os botões nativos
+                st.markdown('<div style="margin-top: 5px;"></div>', unsafe_allow_html=True)
+                st_copy_to_clipboard(
+                    texto_original, 
+                    before_copy_label="📋 Copiar o texto", 
+                    after_copy_label="✅ Copiado!"
                 )
                 
             with col2:
                 st.download_button(
+                    label="📥 Baixar em Word (.DOCX)",
+                    data=gerar_docx(texto_original),
+                    file_name=f"prontuario_{nome_arq}_{data_arq}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+                
+            with col3:
+                st.download_button(
                     label="📄 Baixar em Texto (.TXT)",
                     data=texto_original,
                     file_name=f"prontuario_{nome_arq}_{data_arq}.txt",
-                    mime="text/plain"
+                    mime="text/plain",
+                    use_container_width=True
                 )
             
             st.write("")
