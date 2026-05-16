@@ -20,8 +20,17 @@ except Exception as e:
 # --- LÓGICA DA APLICAÇÃO ---
 if api_pronta:
     # Interface principal
-    paciente_ref = st.text_input("Nome / Iniciais / Referência do Paciente", placeholder="Ex: Ana Silva")
-    anotacoes = st.text_area("Digite as notas da sessão aqui:", height=250, placeholder="Ex: alcoolismo do pai, distanciamento da mãe...")
+    paciente_ref = st.text_input("Nome / Iniciais / Referência do Paciente", placeholder="Ex: F.B./Paciente A")
+    placeholder_notas = (
+    "1. Como o(a) paciente chegou e qual foi a demanda central trazida hoje?\n"
+    "2. Quais técnicas, manejos ou intervenções você utilizou para abordar essa demanda?\n"
+    "3. Quais padrões foram observados ou combinados ficaram para as próximas sessões?"
+    )
+    anotacoes = st.text_area(
+    "Digite as notas da sessão aqui:", 
+    height=250, 
+    placeholder=placeholder_notas
+    )
 
     if st.button("Gerar Prontuário Estruturado"):
         if anotacoes:
