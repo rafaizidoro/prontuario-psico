@@ -3,7 +3,6 @@ import google.generativeai as genai
 from datetime import datetime
 from io import BytesIO
 from docx import Document
-from st_copy_to_clipboard import st_copy_to_clipboard
 
 # Configuração da página - Deve ser a primeira coisa no Streamlit
 st.set_page_config(page_title="Assistente de Prontuário", layout="centered")
@@ -115,17 +114,46 @@ if api_pronta:
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
             
-            # Recupera os dados da memória para os arquivos
             texto_original = st.session_state["texto_gerado"]
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- 1. BOTÃO COPIAR NO TOPO ---
-            st_copy_to_clipboard(
-                texto_original, 
-                before_copy_label="📋 Copiar Prontuário para a Área de Transferência", 
-                after_copy_label="✅ Texto Copiado com Sucesso!"
-            )
+            # --- 1. NOVO BOTÃO COPIAR NATIVO (Sem espaço fantasma) ---
+            # Escapa as quebras de linha para o JavaScript não quebrar
+            texto_js = texto_original.replace('`', '\\`').replace('$', '\\$')
+            
+            botao_copiar_html = f"""
+            <button id="btn-copiar-prontuario" style="
+                width: 100%;
+                background-color: #262730;
+                color: #FAFAFA;
+                border: 1px solid rgba(250, 250, 250, 0.2);
+                padding: 10px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
+                font-size: 16px;
+                transition: background-color 0.3s;
+            ">📋 Copiar Prontuário para a Área de Transferência</button>
+
+            <script>
+                document.getElementById('btn-copiar-prontuario').addEventListener('click', function() {{
+                    const texto = `{texto_js}`;
+                    navigator.clipboard.writeText(texto).then(function() {{
+                        const btn = document.getElementById('btn-copiar-prontuario');
+                        btn.innerText = '✅ Texto Copiado com Sucesso!';
+                        btn.style.backgroundColor = '#1E3A1E';
+                        btn.style.borderColor = '#2E5A2E';
+                        setTimeout(function() {{
+                            btn.innerText = '📋 Copiar Prontuário para a Área de Transferência';
+                            btn.style.backgroundColor = '#262730';
+                            btn.style.borderColor = 'rgba(250, 250, 250, 0.2)';
+                        }}, 3000);
+                    }});
+                }});
+            </script>
+            """
+            st.html(botao_copiar_html)
             
             st.markdown("---")
             
@@ -155,7 +183,7 @@ if api_pronta:
                     use_container_width=True
                 )
             
-            st.write("") # Espaçamento limpo
+            st.write("") # Espaçamento fino
             
             # --- 4. BOTÃO DE RESET NO FINAL ---
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
