@@ -22,9 +22,9 @@ if api_pronta:
     # Interface principal
     paciente_ref = st.text_input("Nome / Iniciais / Referência do Paciente", placeholder="Ex: F.B./Paciente A")
     placeholder_notas = (
-    "1. Como o(a) paciente chegou e qual foi a demanda central trazida hoje?\n"
-    "2. Quais técnicas, manejos ou intervenções você utilizou para abordar essa demanda?\n"
-    "3. Quais padrões foram observados ou combinados ficaram para as próximas sessões?"
+    "Como o(a) paciente chegou e qual a tema principal de hoje?\n"
+    "Quais manejos e intervenções você utilizou?\n"
+    "O que foi observado ao final e o que se espera para as próximas sessões?"
     )
     anotacoes = st.text_area(
     "Digite as notas da sessão aqui:", 
