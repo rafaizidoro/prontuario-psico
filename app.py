@@ -30,7 +30,7 @@ def gerar_docx(texto_prontuario):
         else:
             doc.add_paragraph(linha)
             
-    # Salva o documento diretamente em um buffer de memória (sem criar arquivos lixo no servidor)
+    # Salva o documento diretamente em um buffer de memória
     conteudo_docx = BytesIO()
     doc.save(conteudo_docx)
     conteudo_docx.seek(0)
@@ -63,14 +63,12 @@ if api_pronta:
         placeholder=placeholder_notas
     )
 
-    if st.button("Gerar Prontuário Estruturado"):
-        if anotacoes:
+    # Contêiner para o botão de gerar
+    if anotacoes:
+        if st.button("Gerar Prontuário Estruturado", key="btn_gerar"):
             with st.spinner("O Gemini está analisando e estruturando o prontuário..."):
                 try:
-                    # Captura a data atual formatada (DD/MM/AAAA)
                     data_atual = datetime.now().strftime("%d/%m/%Y")
-                    
-                    # Se o profissional não preencher o nome, define como "Não informado"
                     nome_cliente = paciente_ref.strip() if paciente_ref else "Não informado"
 
                     prompt_completo = f"""
@@ -84,10 +82,11 @@ if api_pronta:
                     Horário: [completar]
                     Sessão nº: [completar]
                     Modalidade: [completar: presencial, online, etc.]
-                                        
+                    
+                    
                     Diretrizes de Escrita:
                     - Tom Profissional: Use uma linguagem técnica (ex: em vez de "fugir", use "esquiva").
-                    - Neutralidade: Não invente diagnósticos ou sentimentos que não foram descritos.
+                    - Neutralidade: Not invente diagnósticos ou sentimentos que não foram descritos.
                     - Concisão: Mantenha cada parágrafo curto. Se uma informação não estiver nas notas, use termos genéricos como "não reportado" ou apenas foque no que existe.
                     - Flexibilidade de Gênero: Adapte o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
                     
@@ -106,40 +105,58 @@ if api_pronta:
                     """
                     
                     response = model.generate_content(prompt_completo)
-                    texto_gerado = response.text
                     
-                    st.success("Prontuário Gerado com Sucesso!")
-                    st.markdown("---")
-                    # --- TRATAMENTO DE QUEBRA DE LINHA PARA O STREAMLIT ---
-                    texto_formatado_tela = texto_gerado.replace("\n", "\n\n")
-                    st.markdown(texto_formatado_tela)
+                    # SALVA NA MEMÓRIA DO APP
+                    st.session_state["texto_gerado"] = response.text
+                    st.session_state["nome_arquivo"] = nome_cliente.replace(" ", "_")
+                    st.session_state["data_arquivo"] = data_atual.replace('/', '-')
                     
-                    st.markdown("---")
-                    
-                    # Definições de nomes amigáveis de arquivo para download
-                    nome_arquivo = nome_cliente.replace(" ", "_")
-                    data_arquivo = data_atual.replace('/', '-')
-                    
-                    # Criando colunas para alinhar os botões lado a lado
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.download_button(
-                            label="📥 Baixar em Word (.DOCX)",
-                            data=gerar_docx(texto_gerado),
-                            file_name=f"prontuario_{nome_arquivo}_{data_arquivo}.docx",
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
-                        
-                    with col2:
-                        st.download_button(
-                            label="📄 Baixar em Texto (.TXT)",
-                            data=texto_gerado,
-                            file_name=f"prontuario_{nome_arquivo}_{data_arquivo}.txt",
-                            mime="text/plain"
-                        )
-                        
                 except Exception as e:
                     st.error(f"Erro ao processar a requisição: {e}")
-        else:
-            st.warning("⚠️ Por favor, insira as anotações da sessão antes de gerar.")
+
+        # EXIBIÇÃO, DOWNLOAD E RECOMEÇAR
+        if "texto_gerado" in st.session_state:
+            st.success("Prontuário Gerado com Sucesso!")
+            st.markdown("---")
+            
+            # Exibe corrigido na tela
+            texto_formatado_tela = st.session_state["texto_gerado"].replace("\n", "\n\n")
+            st.markdown(texto_formatado_tela)
+            st.markdown("---")
+            
+            # Recupera os dados da memória
+            nome_arq = st.session_state["nome_arquivo"]
+            data_arq = st.session_state["data_arquivo"]
+            texto_original = st.session_state["texto_gerado"]
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.download_button(
+                    label="📥 Baixar em Word (.DOCX)",
+                    data=gerar_docx(texto_original),
+                    file_name=f"prontuario_{nome_arq}_{data_arq}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+                
+            with col2:
+                st.download_button(
+                    label="📄 Baixar em Texto (.TXT)",
+                    data=texto_original,
+                    file_name=f"prontuario_{nome_arq}_{data_arq}.txt",
+                    mime="text/plain"
+                )
+            
+            # Espaçamento visual e Botão de Reset
+            st.write("")
+            if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
+                # Limpa todas as chaves salvas na memória da sessão
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                # Força o app a recarregar a página do zero e limpo
+                st.rerun()
+    else:
+        # Se as anotações forem apagadas manualmente, limpa a memória antiga
+        if "texto_gerado" in st.session_state:
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
