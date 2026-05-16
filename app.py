@@ -78,15 +78,13 @@ if api_pronta:
                     
                     Você DEVE obrigatoriamente iniciar o seu output com o cabeçalho exatamente no formato estruturado abaixo. É CRUCIAL que você mantenha cada informação em uma linha separada, respeitando estritamente as quebras de linha. NÃO junte estas linhas em um único parágrafo.
                     
-                    --- INÍCIO DO CABEÇALHO ---
                     ANOTAÇÕES CLÍNICAS DE ATENDIMENTO
                     Cliente: {nome_cliente}
                     Data: {data_atual}
                     Horário: [completar]
                     Sessão nº: [completar]
                     Modalidade: [completar: presencial, online, etc.]
-                    --- FIM DO CABEÇALHO ---
-                    
+                                        
                     Diretrizes de Escrita:
                     - Tom Profissional: Use uma linguagem técnica (ex: em vez de "fugir", use "esquiva").
                     - Neutralidade: Não invente diagnósticos ou sentimentos que não foram descritos.
