@@ -86,7 +86,7 @@ if api_pronta:
                     - Tom Profissional: Use uma linguagem técnica (ex: em vez de "fugir", use "esquiva").
                     - Neutralidade: Não invente diagnósticos ou sentimentos que não foram descritos.
                     - Concisão: Mantenha cada parágrafo curto. Se uma informação não estiver nas notas, use termos genéricos como "não reportado" ou apenas foque no que existe.
-                    - Flexibilidade de Gênero: Adapt o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
+                    - Flexibilidade de Gênero: Adapte o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
                     
                     Estrutura do Restante do Output (pule uma linha após o cabeçalho):
                     
@@ -126,19 +126,28 @@ if api_pronta:
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- POSICIONAMENTO DOS TRÊS BOTÕES LADO A LADO ---
-            col1, col2, col3 = st.columns(3)
+            # --- INJEÇÃO DE CSS PARA O BOTÃO DE COPIAR FICAR COM 100% DE LARGURA ---
+            st.markdown("""
+                <style>
+                    div[data-testid="stVerticalBlock"] button {
+                        width: 100% !important;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            # Botão Copiar sozinho ocupando a largura total acima dos outros
+            st_copy_to_clipboard(
+                texto_original, 
+                before_copy_label="📋 Copiar Prontuário para a Área de Transferência", 
+                after_copy_label="✅ Texto Copiado com Sucesso!"
+            )
+            
+            st.write("") # Espaçamento fino
+            
+            # Os dois botões de download divididos em 2 colunas logo abaixo
+            col1, col2 = st.columns(2)
             
             with col1:
-                # Pequena margem superior em HTML para alinhar perfeitamente a extensão de cópia com os botões nativos
-                st.markdown('<div style="margin-top: 5px;"></div>', unsafe_allow_html=True)
-                st_copy_to_clipboard(
-                    texto_original, 
-                    before_copy_label="📋 Copiar o texto", 
-                    after_copy_label="✅ Copiado!"
-                )
-                
-            with col2:
                 st.download_button(
                     label="📥 Baixar em Word (.DOCX)",
                     data=gerar_docx(texto_original),
@@ -147,7 +156,7 @@ if api_pronta:
                     use_container_width=True
                 )
                 
-            with col3:
+            with col2:
                 st.download_button(
                     label="📄 Baixar em Texto (.TXT)",
                     data=texto_original,
@@ -156,7 +165,9 @@ if api_pronta:
                     use_container_width=True
                 )
             
-            st.write("")
+            st.write("") # Espaçamento
+            
+            # Botão de Reset no final
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
