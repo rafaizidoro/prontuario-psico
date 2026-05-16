@@ -3,6 +3,7 @@ import google.generativeai as genai
 from datetime import datetime
 from io import BytesIO
 from docx import Document
+from st_copy_to_clipboard import st_copy_to_clipboard
 
 # Configuração da página - Deve ser a primeira coisa no Streamlit
 st.set_page_config(page_title="Assistente de Prontuário", layout="centered")
@@ -17,7 +18,6 @@ def gerar_docx(texto_prontuario):
     linhas = texto_prontuario.split('\n')
     for linha in linhas:
         linha_limpa = linha.strip()
-        # Aplica negrito aos títulos principais e cabeçalhos para manter a organização visual
         if (linha_limpa.startswith("ANOTAÇÕES CLÍNICAS") or 
             linha_limpa.startswith("Cliente:") or 
             linha_limpa.startswith("Data:") or 
@@ -30,7 +30,6 @@ def gerar_docx(texto_prontuario):
         else:
             doc.add_paragraph(linha)
             
-    # Salva o documento diretamente em um buffer de memória
     conteudo_docx = BytesIO()
     doc.save(conteudo_docx)
     conteudo_docx.seek(0)
@@ -48,7 +47,6 @@ except Exception as e:
 
 # --- LÓGICA DA APLICAÇÃO ---
 if api_pronta:
-    # Interface principal
     paciente_ref = st.text_input("Nome / Iniciais / Referência do Paciente", placeholder="Ex: F.B./Paciente A")
     
     placeholder_notas = (
@@ -63,7 +61,6 @@ if api_pronta:
         placeholder=placeholder_notas
     )
 
-    # Contêiner para o botão de gerar
     if anotacoes:
         if st.button("Gerar Prontuário Estruturado", key="btn_gerar"):
             with st.spinner("O Gemini está analisando e estruturando o prontuário..."):
@@ -76,17 +73,18 @@ if api_pronta:
                     
                     Você DEVE obrigatoriamente iniciar o seu output com o cabeçalho exatamente no formato estruturado abaixo. É CRUCIAL que você mantenha cada informação em uma linha separada, respeitando estritamente as quebras de linha. NÃO junte estas linhas em um único parágrafo.
                     
+                    --- INÍCIO DO CABEÇALHO ---
                     ANOTAÇÕES CLÍNICAS DE ATENDIMENTO
                     Cliente: {nome_cliente}
                     Data: {data_atual}
                     Horário: [completar]
                     Sessão nº: [completar]
                     Modalidade: [completar: presencial, online, etc.]
-                    
+                    --- FIM DO CABEÇALHO ---
                     
                     Diretrizes de Escrita:
                     - Tom Profissional: Use uma linguagem técnica (ex: em vez de "fugir", use "esquiva").
-                    - Neutralidade: Not invente diagnósticos ou sentimentos que não foram descritos.
+                    - Neutralidade: Não invente diagnósticos ou sentimentos que não foram descritos.
                     - Concisão: Mantenha cada parágrafo curto. Se uma informação não estiver nas notas, use termos genéricos como "não reportado" ou apenas foque no que existe.
                     - Flexibilidade de Gênero: Adapte o gênero (o/a cliente) conforme as notas, ou use termos neutros como "Paciente".
                     
@@ -106,7 +104,6 @@ if api_pronta:
                     
                     response = model.generate_content(prompt_completo)
                     
-                    # SALVA NA MEMÓRIA DO APP
                     st.session_state["texto_gerado"] = response.text
                     st.session_state["nome_arquivo"] = nome_cliente.replace(" ", "_")
                     st.session_state["data_arquivo"] = data_atual.replace('/', '-')
@@ -114,20 +111,25 @@ if api_pronta:
                 except Exception as e:
                     st.error(f"Erro ao processar a requisição: {e}")
 
-        # EXIBIÇÃO, DOWNLOAD E RECOMEÇAR
+        # EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
             st.markdown("---")
             
-            # Exibe corrigido na tela
-            texto_formatado_tela = st.session_state["texto_gerado"].replace("\n", "\n\n")
+            # Exibe formatado na tela para leitura
+            texto_original = st.session_state["texto_gerado"]
+            texto_formatado_tela = texto_original.replace("\n", "\n\n")
             st.markdown(texto_formatado_tela)
             st.markdown("---")
             
-            # Recupera os dados da memória
+            # --- BOTÃO COPIAR (Antes dos downloads) ---
+            st.write("📋 **Área de Transferência:**")
+            st_copy_to_clipboard(texto_original, before_copy_label="Clique para copiar o texto", after_copy_label="✅ Copiado para a área de transferência!")
+            st.write("") # Espaçamento
+            
+            # Recupera os dados da memória para os arquivos
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
-            texto_original = st.session_state["texto_gerado"]
             
             col1, col2 = st.columns(2)
             
@@ -147,16 +149,12 @@ if api_pronta:
                     mime="text/plain"
                 )
             
-            # Espaçamento visual e Botão de Reset
             st.write("")
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
-                # Limpa todas as chaves salvas na memória da sessão
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
-                # Força o app a recarregar a página do zero e limpo
                 st.rerun()
     else:
-        # Se as anotações forem apagadas manualmente, limpa a memória antiga
         if "texto_gerado" in st.session_state:
             for key in list(st.session_state.keys()):
                 del st.session_state[key]

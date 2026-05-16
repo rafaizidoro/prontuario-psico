@@ -1,3 +1,4 @@
 streamlit
 google-generativeai
 python-docx
+st-copy-to-clipboard
