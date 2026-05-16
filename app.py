@@ -111,33 +111,30 @@ if api_pronta:
                 except Exception as e:
                     st.error(f"Erro ao processar a requisição: {e}")
 
-# EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
+        # EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
-            st.markdown("---")
-            
-            # Exibe formatado na tela para leitura
-            texto_original = st.session_state["texto_gerado"]
-            texto_formatado_tela = texto_original.replace("\n", "\n\n")
-            st.markdown(texto_formatado_tela)
-            st.markdown("---")
             
             # Recupera os dados da memória para os arquivos
+            texto_original = st.session_state["texto_gerado"]
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- ESTRUTURA DE BOTÕES ---
-            
-            # 1. Botão Copiar (Usando uma div controlada para evitar o espaçamento gigante)
-            st.markdown('<div style="margin-bottom: -10px;">', unsafe_allow_html=True)
+            # --- 1. BOTÃO COPIAR NO TOPO ---
             st_copy_to_clipboard(
                 texto_original, 
                 before_copy_label="📋 Copiar Prontuário para a Área de Transferência", 
                 after_copy_label="✅ Texto Copiado com Sucesso!"
             )
-            st.markdown('</div>', unsafe_allow_html=True)
             
-            # 2. Os dois botões de download lado a lado
+            st.markdown("---")
+            
+            # --- 2. EXIBIÇÃO DO TEXTO FORMATADO ---
+            texto_formatado_tela = texto_original.replace("\n", "\n\n")
+            st.markdown(texto_formatado_tela)
+            st.markdown("---")
+            
+            # --- 3. BOTÕES DE DOWNLOAD LADO A LADO ---
             col1, col2 = st.columns(2)
             
             with col1:
@@ -158,7 +155,9 @@ if api_pronta:
                     use_container_width=True
                 )
             
-            # 3. Botão de Reset no final
+            st.write("") # Espaçamento limpo
+            
+            # --- 4. BOTÃO DE RESET NO FINAL ---
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
