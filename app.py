@@ -111,7 +111,7 @@ if api_pronta:
                 except Exception as e:
                     st.error(f"Erro ao processar a requisição: {e}")
 
-        # EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
+# EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
             st.markdown("---")
@@ -126,25 +126,18 @@ if api_pronta:
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- INJEÇÃO DE CSS PARA O BOTÃO DE COPIAR FICAR COM 100% DE LARGURA ---
-            st.markdown("""
-                <style>
-                    div[data-testid="stVerticalBlock"] button {
-                        width: 100% !important;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
+            # --- ESTRUTURA DE BOTÕES ---
             
-            # Botão Copiar sozinho ocupando a largura total acima dos outros
+            # 1. Botão Copiar (Usando uma div controlada para evitar o espaçamento gigante)
+            st.markdown('<div style="margin-bottom: -10px;">', unsafe_allow_html=True)
             st_copy_to_clipboard(
                 texto_original, 
                 before_copy_label="📋 Copiar Prontuário para a Área de Transferência", 
                 after_copy_label="✅ Texto Copiado com Sucesso!"
             )
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            st.write("") # Espaçamento fino
-            
-            # Os dois botões de download divididos em 2 colunas logo abaixo
+            # 2. Os dois botões de download lado a lado
             col1, col2 = st.columns(2)
             
             with col1:
@@ -165,9 +158,7 @@ if api_pronta:
                     use_container_width=True
                 )
             
-            st.write("") # Espaçamento
-            
-            # Botão de Reset no final
+            # 3. Botão de Reset no final
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
