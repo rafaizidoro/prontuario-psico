@@ -110,71 +110,28 @@ if api_pronta:
         # EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
+            st.markdown("---")
             
             texto_original = st.session_state["texto_gerado"]
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- 1. BOTÃO COPIAR REESTRUTURADO E BLINDADO CONTRA ERROS ---
-            botao_copiar_html = f"""
-            <textarea id="texto-prontuario-oculto" style="display:none;">{texto_original}</textarea>
+            # --- NOVA EXIBIÇÃO EM CAIXA DE TEXTO COM COPIAR NATIVO ---
+            # Deixamos a altura dinâmica com base no tamanho do texto gerado
+            linhas_texto = len(texto_original.split('\n'))
+            altura_caixa = max(200, min(linhas_texto * 22, 500))
             
-            <button id="btn-copiar-prontuario" style="
-                width: 100%;
-                background-color: #262730;
-                color: #FAFAFA;
-                border: 1px solid rgba(250, 250, 250, 0.2);
-                padding: 10px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 500;
-                font-size: 16px;
-                transition: background-color 0.3s;
-            ">📋 Copiar Prontuário para a Área de Transferência</button>
-
-            <script>
-                document.getElementById('btn-copiar-prontuario').addEventListener('click', function() {{
-                    const campoTexto = document.getElementById('texto-prontuario-oculto');
-                    
-                    // Copia o conteúdo usando a API moderna ou o método de fallback alternativo
-                    if (navigator.clipboard) {{
-                        navigator.clipboard.writeText(campoTexto.value).then(definirSucesso).catch(executarFallback);
-                    }} else {{
-                        executarFallback();
-                    }}
-
-                    function executarFallback() {{
-                        campoTexto.style.display = 'block';
-                        campoTexto.select();
-                        document.execCommand('copy');
-                        campoTexto.style.display = 'none';
-                        definirSucesso();
-                    }}
-
-                    function definirSucesso() {{
-                        const btn = document.getElementById('btn-copiar-prontuario');
-                        btn.innerText = '✅ Texto Copiado com Sucesso!';
-                        btn.style.backgroundColor = '#1E3A1E';
-                        btn.style.borderColor = '#2E5A2E';
-                        setTimeout(function() {{
-                            btn.innerText = '📋 Copiar Prontuário para a Área de Transferência';
-                            btn.style.backgroundColor = '#262730';
-                            btn.style.borderColor = 'rgba(250, 250, 250, 0.2)';
-                        }}, 3000);
-                    }}
-                }});
-            </script>
-            """
-            st.html(botao_copiar_html)
+            st.text_area(
+                label="📋 Use o ícone no canto superior direito da caixa para copiar:",
+                value=texto_original,
+                height=altura_caixa,
+                disabled=True, # Impede que o usuário digite ou altere o prontuário sem querer
+                key="prontuario_final_copy"
+            )
             
             st.markdown("---")
             
-            # --- 2. EXIBIÇÃO DO TEXTO FORMATADO ---
-            texto_formatado_tela = texto_original.replace("\n", "\n\n")
-            st.markdown(texto_formatado_tela)
-            st.markdown("---")
-            
-            # --- 3. BOTÕES DE DOWNLOAD LADO A LADO ---
+            # --- BOTÕES DE DOWNLOAD LADO A LADO ---
             col1, col2 = st.columns(2)
             
             with col1:
@@ -197,7 +154,7 @@ if api_pronta:
             
             st.write("") # Espaçamento fino
             
-            # --- 4. BOTÃO DE RESET NO FINAL ---
+            # --- BOTÃO DE RESET NO FINAL ---
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
