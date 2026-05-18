@@ -107,7 +107,7 @@ if api_pronta:
                 except Exception as e:
                     st.error(f"Erro ao processar a requisição: {e}")
 
-        # EXIBIÇÃO, COPIAR, DOWNLOAD E RECOMEÇAR
+        # EXIBIÇÃO, DOWNLOAD E RECOMEÇAR
         if "texto_gerado" in st.session_state:
             st.success("Prontuário Gerado com Sucesso!")
             st.markdown("---")
@@ -116,22 +116,12 @@ if api_pronta:
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- NOVA EXIBIÇÃO EM CAIXA DE TEXTO COM COPIAR NATIVO ---
-            # Deixamos a altura dinâmica com base no tamanho do texto gerado
-            linhas_texto = len(texto_original.split('\n'))
-            altura_caixa = max(200, min(linhas_texto * 22, 500))
-            
-            st.text_area(
-                label="📋 Use o ícone no canto superior direito da caixa para copiar:",
-                value=texto_original,
-                height=altura_caixa,
-                disabled=True, # Impede que o usuário digite ou altere o prontuário sem querer
-                key="prontuario_final_copy"
-            )
-            
+            # --- 1. EXIBIÇÃO DO TEXTO FORMATADO ---
+            texto_formatado_tela = texto_original.replace("\n", "\n\n")
+            st.markdown(texto_formatado_tela)
             st.markdown("---")
             
-            # --- BOTÕES DE DOWNLOAD LADO A LADO ---
+            # --- 2. BOTÕES DE DOWNLOAD LADO A LADO ---
             col1, col2 = st.columns(2)
             
             with col1:
@@ -154,7 +144,7 @@ if api_pronta:
             
             st.write("") # Espaçamento fino
             
-            # --- BOTÃO DE RESET NO FINAL ---
+            # --- 3. BOTÃO DE RESET NO FINAL ---
             if st.button("🔄 Nova Consulta / Recomeçar", use_container_width=True):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
