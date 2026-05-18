@@ -76,9 +76,6 @@ if api_pronta:
                     ANOTAÇÕES CLÍNICAS DE ATENDIMENTO
                     Cliente: {nome_cliente}
                     Data: {data_atual}
-                    Horário: [completar]
-                    Sessão nº: [completar]
-                    Modalidade: [completar: presencial, online, etc.]
                     
                     
                     Diretrizes de Escrita:
@@ -118,11 +115,10 @@ if api_pronta:
             nome_arq = st.session_state["nome_arquivo"]
             data_arq = st.session_state["data_arquivo"]
             
-            # --- 1. NOVO BOTÃO COPIAR NATIVO (Sem espaço fantasma) ---
-            # Escapa as quebras de linha para o JavaScript não quebrar
-            texto_js = texto_original.replace('`', '\\`').replace('$', '\\$')
-            
+            # --- 1. BOTÃO COPIAR REESTRUTURADO E BLINDADO CONTRA ERROS ---
             botao_copiar_html = f"""
+            <textarea id="texto-prontuario-oculto" style="display:none;">{texto_original}</textarea>
+            
             <button id="btn-copiar-prontuario" style="
                 width: 100%;
                 background-color: #262730;
@@ -138,8 +134,24 @@ if api_pronta:
 
             <script>
                 document.getElementById('btn-copiar-prontuario').addEventListener('click', function() {{
-                    const texto = `{texto_js}`;
-                    navigator.clipboard.writeText(texto).then(function() {{
+                    const campoTexto = document.getElementById('texto-prontuario-oculto');
+                    
+                    // Copia o conteúdo usando a API moderna ou o método de fallback alternativo
+                    if (navigator.clipboard) {{
+                        navigator.clipboard.writeText(campoTexto.value).then(definirSucesso).catch(executarFallback);
+                    }} else {{
+                        executarFallback();
+                    }}
+
+                    function executarFallback() {{
+                        campoTexto.style.display = 'block';
+                        campoTexto.select();
+                        document.execCommand('copy');
+                        campoTexto.style.display = 'none';
+                        definirSucesso();
+                    }}
+
+                    function definirSucesso() {{
                         const btn = document.getElementById('btn-copiar-prontuario');
                         btn.innerText = '✅ Texto Copiado com Sucesso!';
                         btn.style.backgroundColor = '#1E3A1E';
@@ -149,7 +161,7 @@ if api_pronta:
                             btn.style.backgroundColor = '#262730';
                             btn.style.borderColor = 'rgba(250, 250, 250, 0.2)';
                         }}, 3000);
-                    }});
+                    }}
                 }});
             </script>
             """
